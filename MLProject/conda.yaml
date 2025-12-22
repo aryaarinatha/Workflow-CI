@@ -1,0 +1,13 @@
+name: song-rating
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - mlflow
+      - pandas
+      - scikit-learn
+      - joblib
+      - matplotlib
+      - seaborn
