@@ -15,7 +15,6 @@ y_train = df_train["Rating_class_encoded"]
 X_test = df_test.drop(columns=["Rating_class_encoded"])
 y_test = df_test["Rating_class_encoded"]
 
-mlflow.set_tracking_uri("")
 mlflow.sklearn.autolog()
 
 with mlflow.start_run() as run:
