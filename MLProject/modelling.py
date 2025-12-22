@@ -16,7 +16,6 @@ X_test = df_test.drop(columns=["Rating_class_encoded"])
 y_test = df_test["Rating_class_encoded"]
 
 mlflow.set_tracking_uri("")
-mlflow.set_experiment("Song_Rating_Classification")
 mlflow.sklearn.autolog()
 
 with mlflow.start_run() as run:
