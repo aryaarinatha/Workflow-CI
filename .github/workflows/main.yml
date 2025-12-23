@@ -64,7 +64,7 @@ jobs:
       run: |
         docker tag \
           song-rating:latest \
-          ${{ secrets.DOCKER_USERARYA }}/anime-rating-mlflow:latest
+          ${{ secrets.DOCKER_USERARYA }}/song-rating:latest
 
     - name: Push Docker Image
       run: |
