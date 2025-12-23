@@ -1,31 +1,31 @@
+import joblib
 import mlflow
 import mlflow.sklearn
 import pandas as pd
-import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 
-df_train = pd.read_csv("song_preprocessing/song_train_processed.csv")
-df_test = pd.read_csv("song_preprocessing/song_test_processed.csv")
+# Muat data terproses dan encoder label
+train_df = pd.read_csv("song_preprocessing/song_train_processed.csv")
+test_df = pd.read_csv("song_preprocessing/song_test_processed.csv")
 rating_le = joblib.load("song_preprocessing/rating_le.pkl")
-class_names = rating_le.classes_
+label_names = rating_le.classes_
 
-X_train = df_train.drop(columns=["Rating_class_encoded"])
-y_train = df_train["Rating_class_encoded"]
-X_test = df_test.drop(columns=["Rating_class_encoded"])
-y_test = df_test["Rating_class_encoded"]
+# Bagi fitur dan target
+X_train = train_df.drop(columns=["Rating_class_encoded"])
+y_train = train_df["Rating_class_encoded"]
+X_test = test_df.drop(columns=["Rating_class_encoded"])
+y_test = test_df["Rating_class_encoded"]
 
 mlflow.sklearn.autolog()
 
 with mlflow.start_run() as run:
+    # Simpan run id untuk inference
     with open("run_id.txt", "w") as f:
         f.write(run.info.run_id)
 
-    rf = RandomForestClassifier(
-        n_estimators=100,
-        random_state=7
-    )
-    rf.fit(X_train, y_train)
+    model = RandomForestClassifier(n_estimators=100, random_state=7)
+    model.fit(X_train, y_train)
 
-    y_pred = rf.predict(X_test)
-    print(classification_report(y_test, y_pred, target_names=class_names))
+    predictions = model.predict(X_test)
+    print(classification_report(y_test, predictions, target_names=label_names))
