@@ -52,7 +52,7 @@ jobs:
         RUN_ID=$(cat run_id.txt)
         mlflow models build-docker \
           -m "runs:/$RUN_ID/model" \
-          -n anime-rating-mlflow
+          -n song-rating
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
