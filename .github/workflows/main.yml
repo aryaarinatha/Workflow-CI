@@ -18,6 +18,9 @@ jobs:
       with:
         python-version: "3.12"
 
+    - name: Check Env
+      run: python --version
+
     - name: Install dependencies
       run: |
         pip install mlflow pandas scikit-learn joblib matplotlib seaborn
@@ -27,41 +30,34 @@ jobs:
         cd MLProject
         mlflow run . --env-manager=local
     
-    # Simpan RUN_ID ke environment variable agar mudah diakses step selanjutnya
     - name: Get latest MLflow run_id
       run: |
         cd MLProject
         RUN_ID=$(cat run_id.txt)
-        echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "Run ID is $RUN_ID"
+        echo $RUN_ID
 
-    # --- BAGIAN PENTING UNTUK MULTI-ARCH BUILD ---
+    - name: Install Python dependencies
+      run: |
+        pip install mlflow pandas scikit-learn joblib matplotlib seaborn
 
-    # 1. Setup QEMU untuk emulasi ARM di runner AMD64
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
-    # 2. Setup Docker Buildx untuk fitur build tingkat lanjut
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # 3. Login ke Docker Hub
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+    - name: Upload to GitHub
+      uses: actions/upload-artifact@v4
       with:
-        username: ${{ secrets.DOCKER_USERARYA }}
-        password: ${{ secrets.DOCKER_PASSARYA }}
+        name: mlflow-artifacts
+        path: MLProject/mlruns
 
-    # 4. Generate Dockerfile dari MLflow (Tanpa build dulu)
-    # Ini akan membuat folder 'model_docker_dir' berisi Dockerfile dan model
     - name: Generate MLflow Dockerfile context
       run: |
         mlflow models generate-dockerfile \
           -m "runs:/${{ env.RUN_ID }}/model" \
           -d model_docker_dir
 
-    # 5. Build dan Push Multi-Arch Image (AMD64 & ARM64)
-    # Kita menggunakan action resmi docker untuk melakukan buildx
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
       with:
@@ -70,3 +66,19 @@ jobs:
         # Tentukan platform tujuan di sini
         platforms: linux/amd64,linux/arm64
         tags: ${{ secrets.DOCKER_USERARYA }}/song-rating:latest
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERARYA }}
+        password: ${{ secrets.DOCKER_PASSARYA }}
+
+    - name: Tag Docker Image
+      run: |
+        docker tag \
+          song-rating:latest \
+          ${{ secrets.DOCKER_USERARYA }}/song-rating:latest
+
+    - name: Push Docker Image
+      run: |
+        docker push ${{ secrets.DOCKER_USERARYA }}/song-rating:latest
